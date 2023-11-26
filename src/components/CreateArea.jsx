@@ -1,42 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
 
 function CreateArea(props) {
   const [isExpanded, setExpanded] = useState(false);
+  const [note, setNote] = useState({ title: "", content: "" });
+  const createAreaRef = useRef(null);
 
-  const [note, setNote] = useState({
-    title: "",
-    content: ""
-  });
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (createAreaRef.current && !createAreaRef.current.contains(event.target)) {
+        setExpanded(false);
+      }
+    };
 
-  function handleChange(event) {
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []); // Empty dependency array ensures that the effect runs only once, similar to componentDidMount
+
+  const handleChange = (event) => {
     const { name, value } = event.target;
+    setNote((prevNote) => ({ ...prevNote, [name]: value }));
+  };
 
-    setNote(prevNote => {
-      return {
-        ...prevNote,
-        [name]: value
-      };
-    });
-  }
-
-  function submitNote(event) {
+  const submitNote = (event) => {
     props.onAdd(note);
-    setNote({
-      title: "",
-      content: ""
-    });
+    setNote({ title: "", content: "" });
     event.preventDefault();
-  }
+  };
 
-  function expand() {
+  const expand = () => {
     setExpanded(true);
-  }
+  };
 
   return (
-    <div>
+    <div ref={createAreaRef}>
       <form className="create-note">
         {isExpanded && (
           <input
@@ -46,7 +48,6 @@ function CreateArea(props) {
             placeholder="Title"
           />
         )}
-
         <textarea
           name="content"
           onClick={expand}
